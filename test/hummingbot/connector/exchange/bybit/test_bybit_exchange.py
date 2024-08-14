@@ -65,6 +65,13 @@ class TestBybitExchange(unittest.TestCase):
             trading_pairs=[self.trading_pair]
         )
 
+        self.exchange._trading_fees = {
+            "COINALPHA-USDT": {
+                "makerFeeRate": "0.001",
+                "takerFeeRate": "0.002"
+            }
+        }
+
         self.exchange.logger().setLevel(1)
         self.exchange.logger().addHandler(self)
         self.exchange._time_synchronizer.add_time_offset_ms_sample(0)
@@ -276,6 +283,68 @@ class TestBybitExchange(unittest.TestCase):
 
         self.assertEqual(expected_initial_dict, status_dict)
         self.assertFalse(self.exchange.ready)
+
+    @aioresponses()
+    def test_get_exchange_fee_rates(self, mock_api):
+        url = web_utils.rest_url(CONSTANTS.EXCHANGE_FEE_RATE_PATH_URL)
+        regex_url = re.compile(f"^{url}".replace(".", r"\.").replace("?", r"\?"))
+
+        mock_response = {
+            "retCode": 0,
+            "result": {
+                "list": [
+                    {
+                        "symbol": "BTCUSDT",
+                        "makerFeeRate": "0.001",
+                        "takerFeeRate": "0.002"
+                    },
+                    {
+                        "symbol": "ETHUSDT",
+                        "makerFeeRate": "0.0015",
+                        "takerFeeRate": "0.0025"
+                    }
+                ]
+            }
+        }
+        mock_api.get(regex_url, body=json.dumps(mock_response))
+
+        fee_rates = self.async_run_with_timeout(self.exchange._get_exchange_fee_rates())
+
+        self.assertEqual(2, len(fee_rates))
+        self.assertEqual("BTCUSDT", fee_rates[0]["symbol"])
+        self.assertEqual("0.001", fee_rates[0]["makerFeeRate"])
+        self.assertEqual("0.002", fee_rates[0]["takerFeeRate"])
+        self.assertEqual("ETHUSDT", fee_rates[1]["symbol"])
+        self.assertEqual("0.0015", fee_rates[1]["makerFeeRate"])
+        self.assertEqual("0.0025", fee_rates[1]["takerFeeRate"])
+
+    @aioresponses()
+    def test_update_trading_fees(self, mock_api):
+        url = web_utils.rest_url(CONSTANTS.EXCHANGE_FEE_RATE_PATH_URL)
+        regex_url = re.compile(f"^{url}".replace(".", r"\.").replace("?", r"\?"))
+
+        mock_response = {
+            "retCode": 0,
+            "result": {
+                "list": [
+                    {
+                        "symbol": "COINALPHAUSDT",
+                        "makerFeeRate": "0.001",
+                        "takerFeeRate": "0.002"
+                    }
+                ]
+            }
+        }
+        mock_api.get(regex_url, body=json.dumps(mock_response))
+
+        self.exchange._set_trading_pair_symbol_map(bidict({"COINALPHAUSDT": "COINALPHA-USDT"}))
+
+        self.async_run_with_timeout(self.exchange._update_trading_fees())
+
+        self.assertEqual(1, len(self.exchange._trading_fees))
+        self.assertIn("COINALPHA-USDT", self.exchange._trading_fees)
+        self.assertEqual(Decimal("0.001"), Decimal(self.exchange._trading_fees["COINALPHA-USDT"]["makerFeeRate"]))
+        self.assertEqual(Decimal("0.002"), Decimal(self.exchange._trading_fees["COINALPHA-USDT"]["takerFeeRate"]))
 
     def test_get_fee_returns_fee_from_exchange_if_available_and_default_if_not(self):
         fee = self.exchange.get_fee(
