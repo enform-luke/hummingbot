@@ -453,7 +453,7 @@ class BybitExchange(ExchangePyBase):
         exec_price = Decimal(trade_msg["execPrice"]) if "execPrice" in trade_msg else Decimal(trade_msg["price"])
         exec_time = (
             int(trade_msg["execTime"]) * 1e-3 if "execTime" in trade_msg else
-            pd.Timestamp(trade_msg["trade_time"]).timestamp() * 1e-3
+            pd.Timestamp(trade_msg["updatedTime"]).timestamp() * 1e-3
         )
 
         trade_update: TradeUpdate = TradeUpdate(
