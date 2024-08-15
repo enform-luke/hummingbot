@@ -3,7 +3,6 @@ from decimal import Decimal
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
 
 import pandas as pd
-from bidict import bidict
 
 import hummingbot.connector.derivative.bybit_perpetual.bybit_perpetual_constants as CONSTANTS
 import hummingbot.connector.derivative.bybit_perpetual.bybit_perpetual_utils as bybit_utils
@@ -29,6 +28,9 @@ from hummingbot.core.utils.async_utils import safe_gather
 from hummingbot.core.utils.estimate_fee import build_trade_fee
 from hummingbot.core.web_assistant.connections.data_types import RESTMethod
 from hummingbot.core.web_assistant.web_assistants_factory import WebAssistantsFactory
+
+# from bidict import bidict
+
 
 if TYPE_CHECKING:
     from hummingbot.client.config.config_helpers import ClientConfigAdapter
@@ -66,7 +68,10 @@ class BybitPerpetualDerivative(PerpetualDerivativePyBase):
 
     @property
     def authenticator(self) -> BybitPerpetualAuth:
-        return BybitPerpetualAuth(self.api_key, self.secret_key)
+        return BybitPerpetualAuth(
+            api_key = self.api_key,
+            secret_key= self.secret_key,
+            time_provider=self._time_synchronizer)
 
     @property
     def rate_limits_rules(self):
@@ -752,7 +757,7 @@ class BybitPerpetualDerivative(PerpetualDerivativePyBase):
 
     def _initialize_trading_pair_symbols_from_exchange_info(self, exchange_info: Dict[str, Any]):
         _info = exchange_info["result"]["list"]
-        mapping = bidict()
+        mapping = {}
         for symbol_data in filter(bybit_utils.is_exchange_information_valid, _info):
             exchange_symbol = symbol_data["symbol"]
             base = symbol_data["baseCoin"]
