@@ -261,6 +261,8 @@ class BybitExchange(ExchangePyBase):
         }
         if exchange_order_id:
             api_params["orderId"] = exchange_order_id
+        elif order_id:
+            api_params["orderLinkId"] = order_id
         else:
             api_params["orderLinkId"] = client_order_id
         api_params = dict(sorted(api_params.items()))
@@ -271,6 +273,7 @@ class BybitExchange(ExchangePyBase):
             headers={"referer": CONSTANTS.HBOT_BROKER_ID},
         )
         if response["retCode"] != 0:
+            print(f"Error cancelling order {order_id} on {self.name}: ({response['retCode']}) {response['retMsg']}")
             raise ValueError(f"{response['retMsg']}")
         if isinstance(response, dict) and "orderLinkId" in response["result"]:
             return True
