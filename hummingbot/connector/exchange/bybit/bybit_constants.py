@@ -118,7 +118,7 @@ ONE_HOUR = 60 * 60
 
 # https://bybit-exchange.github.io/docs/v5/rate-limit#api-rate-limit-rules-for-vipspros
 MAX_REQUEST_SECURE_DIVIDER = 2
-MAX_REQUEST_LIMIT_DEFAULT = 20 / MAX_REQUEST_SECURE_DIVIDER  # 20/s is the max
+MAX_REQUEST_LIMIT_DEFAULT = 250 / MAX_REQUEST_SECURE_DIVIDER  # 20/s is the max
 
 # No more than 600 requests are allowed in any 5-second window.
 # https://bybit-exchange.github.io/docs/v5/rate-limit#ip-rate-limit
