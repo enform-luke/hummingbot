@@ -11,6 +11,8 @@ SIDE_BUY = "BUY"
 SIDE_SELL = "SELL"
 
 TIME_IN_FORCE_GTC = "GTC"
+TIME_IN_FORCE_POST_ONLY = "PostOnly"
+
 # Base URL
 REST_URLS = {
     "bybit_main": "https://api.bybit.com",
@@ -225,3 +227,6 @@ RATE_LIMITS = {
         ]
     ),
 }
+
+ORDER_NOT_EXIST_ERROR_CODE = 170213
+ORDER_NOT_EXIST_MESSAGE = "Order does not exist."

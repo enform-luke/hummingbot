@@ -238,6 +238,9 @@ class BybitExchange(ExchangePyBase):
         if order_type == OrderType.LIMIT:
             api_params["timeInForce"] = CONSTANTS.TIME_IN_FORCE_GTC
 
+        if order_type == OrderType.LIMIT_MAKER:
+            api_params["timeInForce"] = CONSTANTS.TIME_IN_FORCE_GTC
+
         response = await self._api_post(
             path_url=CONSTANTS.ORDER_PLACE_PATH_URL,
             data=api_params,
